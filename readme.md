@@ -1,10 +1,11 @@
-#  Simple OCR Web App
+# Simple OCR Web App
 
-Aplikasi website sederhana untuk melakukan **OCR (Optical Character Recognition)**, yaitu mengekstrak teks dari gambar. 
+Aplikasi website sederhana untuk melakukan **OCR (Optical Character Recognition)**, yaitu mengekstrak teks dari gambar.
 
 ---
 
 ## Fitur
+
 - Upload gambar (JPG, PNG, JPEG).
 - Ekstrak teks otomatis menggunakan OCR.
 - Copy hasil teks ke clipboard.
@@ -13,6 +14,7 @@ Aplikasi website sederhana untuk melakukan **OCR (Optical Character Recognition)
 ---
 
 ## Tech Stack
+
 - HTML
 - CSS
 - JavaScript
@@ -21,15 +23,18 @@ Aplikasi website sederhana untuk melakukan **OCR (Optical Character Recognition)
 ---
 
 ## 📂 Struktur Folder
+
+```plaintext
 OCR/
-│── static/ 
-│ ├── script.js
-│ └── style.css
+├── static/
+│   ├── script.js
+│   └── style.css
 │
-│── templates/ 
-│ └── index.html
+├── templates/
+│   └── index.html
 │
-│── app.py 
-│── requirements.txt 
-│── .gitignore 
-│── readme.md 
+├── app.py
+├── requirements.txt
+├── .gitignore
+└── readme.md
+```
