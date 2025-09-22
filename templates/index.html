@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR KARA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Optical Character Recognition</h1>
+            <h2>By K A R A</h2>
+            <p>Unggah file image untuk screening teks dijadikan dalam bentuk teks digital</p>
+            <h3>Max. 10 MB</h3>
+        </header>
+        
+        <form id="ocrForm">
+            <div id="uploadArea" class="upload-area">
+                <input type="file" id="imageFile" name="image_file" accept=".jpg, .jpeg, .png" hidden>
+                <div id="upload-prompt">
+                    <p><strong>Klik untuk memilih file</strong></p>
+                    <small>Mendukung: JPG, JPEG, PNG</small>
+                </div>
+            </div>
+
+            <div id="preview" class="preview-area"></div>
+
+            <button type="submit" id="submitButton" disabled>Proses File</button>
+        </form>
+        
+        <div id="status"></div>
+        
+        <div id="resultContainer" class="result-container" style="display: none;">
+            <div class="result-header">
+                <h2>Hasil Screening</h2>
+                <button type="button" id="copyButton" title="Salin ke Clipboard">Copy</button>
+            </div>
+            <pre id="resultText"></pre>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

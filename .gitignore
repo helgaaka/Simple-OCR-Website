@@ -1,0 +1,15 @@
+# Folder Virtual Environment Python
+# Besar, spesifik untuk sistem operasi, dan bisa dibuat ulang dari requirements.txt
+venv/
+
+# File Environment Variables
+# Berisi kunci rahasia (API Keys) dan tidak boleh dibagikan
+.env
+
+# Cache dan file terkompilasi Python
+# Dibuat otomatis oleh Python dan tidak diperlukan di repository
+__pycache__/
+*.pyc
+
+# Folder spesifik editor kode (opsional, tapi praktik yang baik)
+.vscode/
