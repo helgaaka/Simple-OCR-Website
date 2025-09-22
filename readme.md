@@ -30,11 +30,10 @@ OCR/
 │   ├── script.js
 │   └── style.css
 │
-├── templates/
-│   └── index.html
-│
+├── index.html
 ├── app.py
 ├── requirements.txt
 ├── .gitignore
 └── readme.md
+
 ```

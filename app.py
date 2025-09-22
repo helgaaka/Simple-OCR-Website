@@ -1,19 +1,17 @@
 from dotenv import load_dotenv
-load_dotenv() # Memuat variabel dari file .env secara otomatis
+load_dotenv() 
 
+from flask import send_from_directory
 import os
 import io
 from flask import Flask, request, jsonify, render_template
 import google.generativeai as genai
-from PIL import Image # Library untuk memproses gambar
+from PIL import Image
 
-# --- Konfigurasi ---
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Batas ukuran file 10MB
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'} # Gemini Vision mendukung format gambar ini
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'} 
 
-# --- Inisialisasi Klien Gemini ---
-# Ambil API Key dari environment variable yang sudah dimuat oleh load_dotenv()
 try:
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     if not GEMINI_API_KEY:
@@ -22,24 +20,16 @@ try:
 except Exception as e:
     print(e)
 
-# --- Fungsi Bantuan ---
 def allowed_file(filename):
-    """Memeriksa apakah ekstensi file diizinkan."""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def process_image_with_gemini(file_content):
-    """
-    Memanggil Gemini API untuk melakukan OCR dengan mempertahankan tata letak.
-    """
     try:
-        # Muat konten file gambar mentah menjadi objek gambar yang bisa diproses
         img = Image.open(io.BytesIO(file_content))
 
-        # Inisialisasi model Gemini
         model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
-        # ---- PROMPT BARU YANG LEBIH DINAMIS ----
         prompt = """Anda adalah mesin OCR dengan presisi tinggi. Tugas utama Anda adalah mentranskripsikan teks dari gambar ini sambil mempertahankan tata letak visual aslinya secara akurat.
 
 Instruksi:
@@ -53,7 +43,6 @@ Aturan Ketat:
 - **JANGAN** tambahkan komentar, judul, atau teks tambahan apa pun yang tidak ada di gambar.
 - Hasilnya harus berupa teks mentah (raw text) saja."""
 
-        # Kirim prompt dan gambar ke model Gemini
         response = model.generate_content([prompt, img])
 
         if not response.text:
@@ -62,21 +51,15 @@ Aturan Ketat:
         return response.text
 
     except Exception as e:
-        # Melempar kembali exception untuk ditangani oleh endpoint API
         raise e
 
 
-# --- Rute untuk Halaman Utama (Frontend) ---
 @app.route('/')
 def index():
-    """Menyajikan halaman web utama."""
-    return render_template('index.html')
+    return send_from_directory('.', 'index.html')
 
-
-# --- Rute untuk API OCR ---
 @app.route('/api/ocr-process', methods=['POST'])
 def ocr_process():
-    """Endpoint untuk menerima file, menjalankan OCR dengan Gemini, dan mengembalikan teks."""
     if 'image_file' not in request.files:
         return jsonify({"error": "Request harus menyertakan bagian 'image_file'"}), 400
 
@@ -87,7 +70,6 @@ def ocr_process():
 
     try:
         file_content = file.read()
-        # Panggil fungsi yang baru untuk memproses dengan Gemini
         extracted_text = process_image_with_gemini(file_content)
         return jsonify({"structured_text": extracted_text}), 200
     except Exception as e:
@@ -95,7 +77,6 @@ def ocr_process():
         return jsonify({"error": f"Gagal memproses file: {str(e)}"}), 500
 
 
-# --- Menjalankan Server ---
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
 
