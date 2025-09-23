@@ -1,36 +1,28 @@
-from dotenv import load_dotenv
-load_dotenv() 
-
-from flask import send_from_directory
-import os
-import io
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_from_directory
+import os, io
 import google.generativeai as genai
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'} 
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-try:
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-    if not GEMINI_API_KEY:
-        raise ValueError("Error: Environment variable GEMINI_API_KEY tidak ditemukan. Pastikan file .env sudah benar.")
-    genai.configure(api_key=GEMINI_API_KEY)
-except Exception as e:
-    print(e)
+# Gemini API
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY tidak ditemukan")
+genai.configure(api_key=GEMINI_API_KEY)
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def process_image_with_gemini(file_content):
-    try:
-        img = Image.open(io.BytesIO(file_content))
-
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-
-        prompt = """Anda adalah mesin OCR dengan presisi tinggi. Tugas utama Anda adalah mentranskripsikan teks dari gambar ini sambil mempertahankan tata letak visual aslinya secara akurat.
+    img = Image.open(io.BytesIO(file_content))
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    prompt = """Anda adalah mesin OCR dengan presisi tinggi. Tugas utama Anda adalah mentranskripsikan teks dari gambar ini sambil mempertahankan tata letak visual aslinya secara akurat.
 
 Instruksi:
 1.  Analisis struktur dokumen pada gambar, identifikasi semua kolom, paragraf, daftar, dan indentasi.
@@ -43,17 +35,12 @@ Aturan Ketat:
 - **JANGAN** tambahkan komentar, judul, atau teks tambahan apa pun yang tidak ada di gambar.
 - Hasilnya harus berupa teks mentah (raw text) saja."""
 
-        response = model.generate_content([prompt, img])
+    response = model.generate_content([prompt, img])
+    if not response.text:
+        raise Exception("Gemini tidak mengembalikan teks.")
+    return response.text
 
-        if not response.text:
-             raise Exception("Gemini tidak mengembalikan teks. Gambar mungkin kosong atau tidak dapat dibaca.")
-
-        return response.text
-
-    except Exception as e:
-        raise e
-
-
+# Serve index.html dari root
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -61,22 +48,18 @@ def index():
 @app.route('/api/ocr-process', methods=['POST'])
 def ocr_process():
     if 'image_file' not in request.files:
-        return jsonify({"error": "Request harus menyertakan bagian 'image_file'"}), 400
-
+        return jsonify({"error": "Harus menyertakan image_file"}), 400
     file = request.files['image_file']
-
     if file.filename == '' or not allowed_file(file.filename):
-        return jsonify({"error": "File tidak valid. Gunakan: png, jpg, jpeg"}), 400
-
+        return jsonify({"error": "File tidak valid"}), 400
     try:
         file_content = file.read()
         extracted_text = process_image_with_gemini(file_content)
         return jsonify({"structured_text": extracted_text}), 200
     except Exception as e:
-        app.logger.error(f"Terjadi kesalahan saat pemrosesan OCR dengan Gemini: {e}")
-        return jsonify({"error": f"Gagal memproses file: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
 
-
+# Port dari Render
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
